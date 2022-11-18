@@ -11,6 +11,7 @@
 
 #include <Arduino.h>
 #include "IMUSensorLib.h"
+#include "ConnectionService.h"
 
 uint8_t g_calibrate = 1;
 uint8_t g_ledBuiltIn = 2;
@@ -21,10 +22,6 @@ void setup()
 
     if (MPU.begin(Wire))
     {
-        Serial.printf("Nao foi possivel iniciar a MPU.\n");
-    }
-    else
-    {
         Serial.printf("MPU inicializada com sucesso.");
     }
 
@@ -34,6 +31,8 @@ void setup()
     settings.MovementInterval = 0.05;
 
     MPU.configureMovementDetection(settings);
+
+    // Salvar offset na memória.
 
     if (g_calibrate)
     {
@@ -61,6 +60,7 @@ void setup()
     pinMode(g_ledBuiltIn, OUTPUT);
 
     MPU.start(10);
+    ConnectionService.begin();
 }	
 
 void loop() 
