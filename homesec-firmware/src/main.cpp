@@ -13,6 +13,7 @@
 #include "IMUSensorLib.h"
 
 uint8_t g_calibrate = 1;
+uint8_t g_ledBuiltIn = 2;
 
 void setup() 
 {
@@ -26,6 +27,13 @@ void setup()
     {
         Serial.printf("MPU inicializada com sucesso.");
     }
+
+    IMUMovementSettings_t settings;
+
+    settings.MinimumSamples = 1;
+    settings.MovementInterval = 0.05;
+
+    MPU.configureMovementDetection(settings);
 
     if (g_calibrate)
     {
@@ -50,10 +58,17 @@ void setup()
                                                                 currentOffsets.ZGyroOffset);
     }
     
-    MPU.start(1000);
+    pinMode(g_ledBuiltIn, OUTPUT);
+
+    MPU.start(10);
 }	
 
 void loop() 
 {
+    if (MPU.getDevState() == DeviceState_e::STATE_MOVING)
+        digitalWrite(g_ledBuiltIn, HIGH);
+    else
+        digitalWrite(g_ledBuiltIn, LOW);
 
+    delay(250);
 }

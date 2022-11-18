@@ -88,7 +88,6 @@ void MPU6050IMU::updateData()
     if (g_fifoCount > 1023)
     {
         m_mpu.resetFIFO();
-        Serial.printf("FIFO Overflow.\n");
     }
     else
     {
@@ -118,8 +117,6 @@ void MPU6050IMU::updateData()
         if (abs(static_cast<int>(millis() - g_timeLastRead)) > m_readFrequency)
         {
             g_timeLastRead = millis();
-
-            Serial.printf("Acc XYZ: %.2f | %.2f | %.2f\n", data.Acc_X, data.Acc_Y, data.Acc_Z);
 
             addMeasurement(data);
             detectMovement();

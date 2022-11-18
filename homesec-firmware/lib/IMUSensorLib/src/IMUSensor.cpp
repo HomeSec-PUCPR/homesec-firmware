@@ -69,35 +69,50 @@ bool IMUSensor::getMovingState()
 
 void IMUSensor::detectMovement()
 {
-    if(m_axisData.isEmpty() || !m_semaphoreInitialized)
+    if (m_axisData.isEmpty() || !m_semaphoreInitialized)
         return;
 
     IMUAxisData_t lastData = getAxisData();
 
     double moduleAcc = sqrt(pow(lastData.Acc_X, 2) + pow(lastData.Acc_Y, 2) + pow(lastData.Acc_Z, 2));
 
-    if(moduleAcc < (1 - m_movementSettings.MovementInterval) || moduleAcc > (1 + m_movementSettings.MovementInterval))
+    if (moduleAcc < (1 - m_movementSettings.MovementInterval) || moduleAcc > (1 + m_movementSettings.MovementInterval))
     {
-        if(g_movementCount == 0)
-            g_firstMovement = lastData.Time;
         g_movementCount++;
     }
+    else
+    {
+        g_movementCount = 0;
+    }
 
-    if(g_movementCount >= m_movementSettings.MinimumSamples)
+    if (g_movementCount >= m_movementSettings.MinimumSamples)
     {
         g_stopCount = 0;
 
         xSemaphoreTake(m_imuSemaphore, portMAX_DELAY);
         m_moving = true;
+        xSemaphoreGive(m_imuSemaphore);
+    }
 
-        m_movementData.StartTime = g_firstMovement;
+    if (moduleAcc > (1 - m_movementSettings.MovementInterval) && moduleAcc < (1 + m_movementSettings.MovementInterval))
+    {
+        g_stopCount++;
+    }
+    else
+        g_stopCount = 0;
+
+    if (g_stopCount >= 10)
+    {
+        g_movementCount = 0;
+        xSemaphoreTake(m_imuSemaphore, portMAX_DELAY);
+        m_moving = false;
         xSemaphoreGive(m_imuSemaphore);
     }
 }
 
 void IMUSensor::addMeasurement(IMUAxisData_t measurement)
 {
-    if(!m_semaphoreInitialized)
+    if (!m_semaphoreInitialized)
         return;
 
     xSemaphoreTake(m_imuSemaphore, portMAX_DELAY);
@@ -107,7 +122,7 @@ void IMUSensor::addMeasurement(IMUAxisData_t measurement)
 
 void IMUSensor::resetMeasurements()
 {
-    if(!m_semaphoreInitialized)
+    if (!m_semaphoreInitialized)
         return;
 
     xSemaphoreTake(m_imuSemaphore, portMAX_DELAY);
@@ -117,7 +132,7 @@ void IMUSensor::resetMeasurements()
 
 void IMUSensor::getMovementData(IMUMovementData_t &movementStruct)
 {
-    if(!m_semaphoreInitialized)
+    if (!m_semaphoreInitialized)
         return;
 
     xSemaphoreTake(m_imuSemaphore, portMAX_DELAY);
@@ -129,7 +144,7 @@ DeviceState_e IMUSensor::getDevState()
 {
     DeviceState_e devState;
 
-    if(m_semaphoreInitialized)
+    if (m_semaphoreInitialized)
     {
         xSemaphoreTake(m_imuSemaphore, portMAX_DELAY);
         devState = m_devState;
