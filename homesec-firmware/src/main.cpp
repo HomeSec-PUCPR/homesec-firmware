@@ -13,7 +13,6 @@
 #include "IMUSensorLib.h"
 
 uint8_t g_calibrate = 1;
-uint8_t g_readDelay = 1000;
 
 void setup() 
 {
@@ -51,7 +50,7 @@ void setup()
                                                                 currentOffsets.ZGyroOffset);
     }
     
-    MPU.start(g_readDelay);
+    MPU.start(1000);
 }	
 
 void loop() 
